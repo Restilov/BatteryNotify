@@ -26,6 +26,12 @@ lipo -create -output "$APP/Contents/MacOS/$APP_NAME" \
 	"build/$APP_NAME-arm64" "build/$APP_NAME-x86_64"
 rm -f "build/$APP_NAME-arm64" "build/$APP_NAME-x86_64"
 
+# The icon is generated from source rather than checked in as a binary asset.
+ICONSET="build/AppIcon.iconset"
+swift Tools/make-icon.swift "$ICONSET" >/dev/null
+iconutil --convert icns --output "$APP/Contents/Resources/AppIcon.icns" "$ICONSET"
+rm -rf "$ICONSET"
+
 # Ad-hoc signature: enough to run locally and to satisfy SMAppService.
 codesign --force --sign - --identifier "$BUNDLE_ID" "$APP"
 

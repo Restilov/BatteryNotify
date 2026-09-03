@@ -80,6 +80,7 @@ Sources/AlertPanel.swift         the floating warning panel
 Sources/AppDelegate.swift        menu bar UI and alert logic
 Sources/main.swift               entry point
 Resources/Info.plist             bundle metadata (LSUIElement = background app)
+Tools/make-icon.swift            the app icon, drawn in code
 build.sh                         universal swiftc build + ad-hoc signature
 package.sh                       disk image packaging
 .github/workflows/release.yml    build and publish on tag
