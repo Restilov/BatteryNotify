@@ -12,9 +12,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var thresholdItems: [NSMenuItem] = []
     private var launchAtLoginItem: NSMenuItem?
 
-    /// Set when the user closes the warning by hand, so it does not pop back up
-    /// on the next percentage tick. Cleared once the battery leaves the low range.
-    private var dismissedByUser = false
+    private var dismissedAtPercentage: Int? = nil
+    private var lastKnownPercentage = 0
 
     private var threshold: Int {
         get {
@@ -28,7 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         alert = AlertPanel { [weak self] in
-            self?.dismissedByUser = true
+            self?.dismissedAtPercentage = self?.lastKnownPercentage
         }
 
         buildMenu()
@@ -42,14 +41,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // MARK: - Battery state
 
     private func handle(_ state: PowerMonitor.State) {
+        lastKnownPercentage = state.percentage
         updateStatusItem(state)
 
         if state.isPluggedIn || state.percentage > threshold {
             // Charger connected, or back above the threshold: the warning is no
             // longer relevant, so take it off the screen by itself.
             alert?.hide()
-            dismissedByUser = false
-        } else if !dismissedByUser {
+            dismissedAtPercentage = nil
+        } else if let dismissed = dismissedAtPercentage, state.percentage > dismissed - 5 {
+        } else {
+            dismissedAtPercentage = nil
             alert?.show(percentage: state.percentage)
         }
     }
@@ -128,7 +130,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         for item in thresholdItems {
             item.state = item.tag == sender.tag ? .on : .off
         }
-        dismissedByUser = false
+        dismissedAtPercentage = nil
         monitor?.reevaluate()
     }
 
