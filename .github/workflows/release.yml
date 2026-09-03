@@ -34,4 +34,4 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" build/BatteryNotify.dmg --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" build/BatteryNotify.dmg --notes-file .github/RELEASE_NOTES.md --generate-notes
