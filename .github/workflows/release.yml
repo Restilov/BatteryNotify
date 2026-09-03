@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the app
+        run: ./build.sh
+
+      - name: Package the disk image
+        run: ./package.sh
+
+      - name: Upload the disk image as a build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BatteryNotify-dmg
+          path: build/BatteryNotify.dmg
+
+      - name: Publish the release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" build/BatteryNotify.dmg --generate-notes

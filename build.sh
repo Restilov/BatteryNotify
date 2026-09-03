@@ -1,23 +1,33 @@
 #!/bin/bash
-# Builds BatteryNotify.app without Xcode (Command Line Tools are enough).
+# Builds a universal BatteryNotify.app without Xcode (Command Line Tools are enough).
 set -euo pipefail
 cd "$(dirname "$0")"
 
 APP_NAME="BatteryNotify"
 BUNDLE_ID="com.resti.BatteryNotify"
 APP="build/$APP_NAME.app"
+DEPLOYMENT_TARGET="13.0"
 
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 
-swiftc \
-	-target "$(uname -m)-apple-macos13.0" \
-	-O -whole-module-optimization \
-	-o "$APP/Contents/MacOS/$APP_NAME" \
-	Sources/*.swift
+# One slice per architecture, then glued together so the release runs on both
+# Apple Silicon and Intel.
+for arch in arm64 x86_64; do
+	swiftc \
+		-target "$arch-apple-macos$DEPLOYMENT_TARGET" \
+		-O -whole-module-optimization \
+		-o "build/$APP_NAME-$arch" \
+		Sources/*.swift
+done
 
-# Ad-hoc signature: required for notifications and the login item to work.
+lipo -create -output "$APP/Contents/MacOS/$APP_NAME" \
+	"build/$APP_NAME-arm64" "build/$APP_NAME-x86_64"
+rm -f "build/$APP_NAME-arm64" "build/$APP_NAME-x86_64"
+
+# Ad-hoc signature: enough to run locally and to satisfy SMAppService.
 codesign --force --sign - --identifier "$BUNDLE_ID" "$APP"
 
 echo "Built $APP"
+lipo -archs "$APP/Contents/MacOS/$APP_NAME"
