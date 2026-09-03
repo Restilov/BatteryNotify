@@ -12,6 +12,13 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 
+# The tag you picked is the single source of truth for the version number;
+# nothing is typed into Info.plist by hand.
+VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+VERSION=${VERSION#v}
+plutil -replace CFBundleShortVersionString -string "$VERSION" "$APP/Contents/Info.plist"
+plutil -replace CFBundleVersion -string "$VERSION" "$APP/Contents/Info.plist"
+
 # One slice per architecture, then glued together so the release runs on both
 # Apple Silicon and Intel.
 for arch in arm64 x86_64; do
@@ -35,5 +42,5 @@ rm -rf "$ICONSET"
 # Ad-hoc signature: enough to run locally and to satisfy SMAppService.
 codesign --force --sign - --identifier "$BUNDLE_ID" "$APP"
 
-echo "Built $APP"
+echo "Built $APP (version $VERSION)"
 lipo -archs "$APP/Contents/MacOS/$APP_NAME"
