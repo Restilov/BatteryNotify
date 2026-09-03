@@ -18,14 +18,21 @@ Download `BatteryNotify.dmg` from the
 [latest release](../../releases/latest), open it and drag the app into
 `Applications`.
 
-The app is signed ad-hoc rather than with an Apple Developer ID, so the first
-launch has to go through Gatekeeper by hand: right-click the app in
-`Applications`, choose **Open**, then confirm. macOS remembers the choice, and
-every later launch is normal. The command line equivalent is:
+The app is signed ad-hoc rather than with an Apple Developer ID, so macOS blocks
+the first launch with *"Apple could not verify BatteryNotify is free of
+malware"*. Press **Done** there — not *Move to Trash* — then let it through in
+one of two ways:
 
-```sh
-xattr -d com.apple.quarantine /Applications/BatteryNotify.app
-```
+- **System Settings -> Privacy & Security**, scroll down to the notice about the
+  blocked app and press **Open Anyway**, or
+- drop the download flag from a terminal:
+
+  ```sh
+  xattr -d com.apple.quarantine /Applications/BatteryNotify.app
+  ```
+
+macOS remembers the decision, so every later launch is normal. Control-clicking
+the app and choosing *Open* used to work as a shortcut; macOS 15 removed it.
 
 ## Usage
 
