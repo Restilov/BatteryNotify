@@ -1,0 +1,3 @@
+# The shell scripts only build and package the app; keep the language bar on
+# GitHub about the app itself.
+*.sh linguist-detectable=false
